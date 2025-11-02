@@ -174,8 +174,10 @@ fn main() {
         vote_stack.push(c);
 
         let m = decrypt(&c, &authority_keypair);
-        let m1_small = m.as_words().first().expect("m must be non-empty");
-        println!("m{i} = {m} ({m:b})", m = m1_small);
+
+        let m_str_dec = m.to_string_radix_vartime(10);
+        let m_str_bin = m.to_string_radix_vartime(2);
+        println!("m{i} = {} ({})", m_str_dec, m_str_bin);
     }
 
     let n_squared_nz = n_squared.to_nz().expect("N-squared/N must not be 0");
@@ -185,26 +187,22 @@ fn main() {
     println!("prod(c) = {}", product.to_string_radix_vartime(10));
 
     let m_total = decrypt(&product, &authority_keypair);
-    let m_total_small = m_total
-        .as_words()
-        .first()
-        .expect("m_total must be non-empty");
-    println!("m_final = {m} ({m:b})", m = m_total_small);
-
-    let m_total_small_upcasted = UintType::from_u64(*m_total_small);
-    assert!(
-        m_total.eq(&m_total_small_upcasted),
-        "Overflow when downcasting total votes to u64. Increase width..."
-    );
+    let m_str_dec = m_total.to_string_radix_vartime(10);
+    let m_str_bin = m_total.to_string_radix_vartime(2);
+    println!("m_final = {} ({})", m_str_dec, m_str_bin);
 
     let mut votes = 0;
     for i in 0..N_CANDIDATES {
-        let mask = N_VOTERS as u64 - 1;
-        let votes_shifted = m_total_small >> (per_candidate_bits as usize * i);
-        let votes_for_candidate = votes_shifted & mask;
-        votes += votes_for_candidate;
+        let mask = UintType::from_u64(N_VOTERS as u64 - 1);
 
-        println!("Candidate {i}: {votes_for_candidate} votes.");
+        let votes_shifted = m_total >> (per_candidate_bits as usize * i);
+        let votes_for_candidate = votes_shifted & mask;
+
+        // Limits amount of votes to u64, but is still superior to limiting entire vote space to 64 bits
+        let votes_for_candidate_downcast = votes_for_candidate.as_words().first().unwrap();
+        votes += votes_for_candidate_downcast;
+
+        println!("Candidate {i}: {} votes.", votes_for_candidate_downcast);
     }
 
     let n_voters = vote_stack.len();
