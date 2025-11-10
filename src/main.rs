@@ -54,10 +54,10 @@ struct AuthorityKeypair<T> {
 type UintType = U128; // Sufficient where the problem only asks for 28 bits.
 static N_VOTERS: usize = 16; // log2(N_VOTERS) determines the amount of bits needed to encode the number of voters per candidate
 static N_CANDIDATES: usize = 3; // Together with log2(N_VOTERS), determines the size of the vote message
-static CHOSEN_CANDIDATE_IDX: u32 = 0; // Determines ehich candidate position in the message to shift a vote (value 1) into
+static CHOSEN_CANDIDATE_IDX: u32 = 2; // Determines which candidate position in the message to shift a vote (value 1) into. Least-significant-bit signifies first candidate.
 static NUM_BITS_WORKING: usize = 14;
 
-static N: UintType = UintType::from_u32(14351); // The public key of the authority. Must be known before the program runs.
+static N: UintType = UintType::from_u32(14803); // The public key of the authority. Must be known before the program runs.
 
 fn main() {
     // These belong to the central authority...
